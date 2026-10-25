@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PRChecker"
+version = "0.1.0"
+requires-python = ">=3.9"
+
+dependencies = [
+    "fastapi >= 0.115",
+    "uvicorn >= 0.30",
+    "httpx >= 0.27",
+]
+readme = "README.md"
+license = "MIT"
+
+authors = [
+    { name = "Sidharth Nambiar", email = "sidnambiar2008@gmail.com" }
+]
+maintainers = [
+    { name = "Sidharth Nambiar", email = "sidnambiar2008@gmail.com" }
+]
+description = "Finds the changes a pull request makes but doesn't mention. Local, open-weight AI (Qwen3) audits PR intent against the actual diff."
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+keywords = [
+    "Pull Requests", "Github Search"
+]
+
+[project.scripts]
+pr-checker = "pr_checker.__main__:main"
+
+[project.optional-dependencies]
+dev = ["pytest >= 8"]
+# Only needed for inference.py, the standalone Hugging Face Transformers demo; the app talks to Ollama instead.
+transformers = ["torch", "transformers"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pr_checker = ["web/**/*", "data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

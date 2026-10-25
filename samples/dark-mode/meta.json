@@ -1,0 +1,11 @@
+{
+  "id": "dark-mode",
+  "repo": "fieldnotes/app",
+  "title": "feat: add dark mode toggle to settings",
+  "hint": "An honest feature PR. Does it really include the tests it mentions?",
+  "description": "Adds a dark mode toggle under Settings → Appearance.\n\n- The choice is saved to localStorage and falls back to the OS preference.\n- Applied through a `data-theme` attribute on `<html>`, so existing CSS variables just work.\n- Includes tests for the `useTheme` hook.\n\nCloses #212",
+  "expect": {
+    "verdict": "overclaims",
+    "planted": []
+  }
+}

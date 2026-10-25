@@ -1,0 +1,136 @@
+/*
+  Design tokens for PR Checker. The only file that contains color literals.
+  Values and usage rules are specified in /design.md. Change both together.
+*/
+
+:root {
+  color-scheme: light;
+
+  /* Neutrals */
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --surface-sunk: #efeeea;
+  --border: #dad8d1;
+  --control-border: #8a877d;
+  --text: #1a1a18;
+  --text-2: #4a4842;
+  --text-3: #66635b;
+
+  /* Interactive */
+  --link: #1d4f9f;
+  --primary: #1a1a18;
+  --on-primary: #ffffff;
+
+  /* Semantic: high concern, errors */
+  --danger-text: #b42318;
+  --danger-bg: #fcebe9;
+  --danger-line: #e8b4ae;
+  /* Semantic: medium concern, caution */
+  --warning-text: #7a4800;
+  --warning-bg: #fbf0db;
+  --warning-line: #e3c98e;
+  /* Semantic: covered, success */
+  --success-text: #1e6b3a;
+  --success-bg: #e7f3ea;
+  --success-line: #aed3b9;
+
+  /* Diff */
+  --add-bg: #e6f4ea;
+  --add-gutter: #cfe9d7;
+  --del-bg: #fbe9e7;
+  --del-gutter: #f4cfcb;
+
+  /* Type */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --fs-display: 28px;
+  --lh-display: 34px;
+  --fs-title: 24px;
+  --lh-title: 30px;
+  --fs-heading: 16px;
+  --lh-heading: 24px;
+  --fs-body: 15px;
+  --lh-body: 22px;
+  --fs-small: 13px;
+  --lh-small: 19px;
+  --fs-code: 13px;
+  --lh-code: 20px;
+  --fs-meta: 12px;
+  --lh-meta: 16px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Shape */
+  --radius-sm: 3px;
+  --radius: 4px;
+  --radius-lg: 6px;
+
+  /* Layout */
+  --frame-max: 1240px;
+  --frame-pad: 24px;
+  --rail-width: 320px;
+  --header-height: 56px;
+  --control-height: 36px;
+
+  /* Motion */
+  --t-fast: 120ms ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #141413;
+    --surface: #1c1c1a;
+    --surface-sunk: #232321;
+    --border: #34342f;
+    --control-border: #7a776e;
+    --text: #ecebe6;
+    --text-2: #c0beb5;
+    --text-3: #9a978e;
+
+    --link: #8ab4f8;
+    --primary: #ecebe6;
+    --on-primary: #141413;
+
+    --danger-text: #ff9b8f;
+    --danger-bg: #3a1e1b;
+    --danger-line: #6b3a35;
+    --warning-text: #ebc06a;
+    --warning-bg: #33280f;
+    --warning-line: #665021;
+    --success-text: #7fd097;
+    --success-bg: #16301f;
+    --success-line: #2f5c3d;
+
+    --add-bg: #17301e;
+    --add-gutter: #1f4029;
+    --del-bg: #361c19;
+    --del-gutter: #4a2622;
+  }
+}
+
+@media (max-width: 639px) {
+  :root {
+    --frame-pad: 16px;
+    --fs-title: 22px;
+    --lh-title: 28px;
+    --fs-display: 24px;
+    --lh-display: 30px;
+  }
+}
+
+@media (pointer: coarse) {
+  :root {
+    --control-height: 44px;
+  }
+}

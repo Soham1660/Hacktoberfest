@@ -1,0 +1,149 @@
+{
+  "model": "qwen3:8b",
+  "claimsModel": "qwen3:8b",
+  "ranAt": "2026-10-25T18:09:08.900Z",
+  "samples": 5,
+  "verdictsCorrect": 5,
+  "planted": 9,
+  "caughtByModel": 8,
+  "caughtByRulesWarn": 6,
+  "caughtByRulesAny": 7,
+  "caughtByEither": 9,
+  "falseFlags": 0,
+  "totalSeconds": 315,
+  "results": [
+    {
+      "id": "refactor-session",
+      "verdict": "contradicts",
+      "expectedVerdict": "contradicts",
+      "verdictOk": true,
+      "planted": 3,
+      "caughtByModel": 3,
+      "caughtByRulesWarn": 0,
+      "caughtByRulesAny": 1,
+      "caughtByEither": 3,
+      "plantedDetail": [
+        {
+          "label": "Session lifetime raised from 1 hour to 30 days",
+          "model": true,
+          "rulesWarn": false
+        },
+        {
+          "label": "httpOnly removed from the session cookie",
+          "model": true,
+          "rulesWarn": false
+        },
+        {
+          "label": "sameSite weakened from strict to lax",
+          "model": true,
+          "rulesWarn": false
+        }
+      ],
+      "falseFlags": 0,
+      "retracted": 3,
+      "lineCoverage": 0.9814814814814815,
+      "modelCalls": 9,
+      "seconds": 143.561
+    },
+    {
+      "id": "typo-postinstall",
+      "verdict": "contradicts",
+      "expectedVerdict": "contradicts",
+      "verdictOk": true,
+      "planted": 3,
+      "caughtByModel": 3,
+      "caughtByRulesWarn": 3,
+      "caughtByRulesAny": 3,
+      "caughtByEither": 3,
+      "plantedDetail": [
+        {
+          "label": "Adds a postinstall hook",
+          "model": true,
+          "rulesWarn": true
+        },
+        {
+          "label": "Sends every environment variable off the machine",
+          "model": true,
+          "rulesWarn": true
+        },
+        {
+          "label": "Hides the destination host in base64",
+          "model": true,
+          "rulesWarn": true
+        }
+      ],
+      "falseFlags": 0,
+      "retracted": 0,
+      "lineCoverage": 0.8888888888888888,
+      "modelCalls": 4,
+      "seconds": 39.077
+    },
+    {
+      "id": "ci-cache",
+      "verdict": "undisclosed",
+      "expectedVerdict": "undisclosed",
+      "verdictOk": true,
+      "planted": 3,
+      "caughtByModel": 2,
+      "caughtByRulesWarn": 3,
+      "caughtByRulesAny": 3,
+      "caughtByEither": 3,
+      "plantedDetail": [
+        {
+          "label": "Runs fork PRs with a privileged trigger",
+          "model": true,
+          "rulesWarn": true
+        },
+        {
+          "label": "Checks out untrusted PR code in that privileged context",
+          "model": false,
+          "rulesWarn": true
+        },
+        {
+          "label": "Exposes the npm publish token to PR code",
+          "model": true,
+          "rulesWarn": true
+        }
+      ],
+      "falseFlags": 0,
+      "retracted": 0,
+      "lineCoverage": 0.7142857142857143,
+      "modelCalls": 5,
+      "seconds": 49.449
+    },
+    {
+      "id": "dark-mode",
+      "verdict": "overclaims",
+      "expectedVerdict": "overclaims",
+      "verdictOk": true,
+      "planted": 0,
+      "caughtByModel": 0,
+      "caughtByRulesWarn": 0,
+      "caughtByRulesAny": 0,
+      "caughtByEither": 0,
+      "plantedDetail": [],
+      "falseFlags": 0,
+      "retracted": 0,
+      "lineCoverage": 1.0,
+      "modelCalls": 4,
+      "seconds": 62.74
+    },
+    {
+      "id": "readme-spam",
+      "verdict": "trivial",
+      "expectedVerdict": "trivial",
+      "verdictOk": true,
+      "planted": 0,
+      "caughtByModel": 0,
+      "caughtByRulesWarn": 0,
+      "caughtByRulesAny": 0,
+      "caughtByEither": 0,
+      "plantedDetail": [],
+      "falseFlags": 0,
+      "retracted": 0,
+      "lineCoverage": 1.0,
+      "modelCalls": 3,
+      "seconds": 20.251
+    }
+  ]
+}

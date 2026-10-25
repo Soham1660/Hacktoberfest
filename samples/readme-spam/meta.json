@@ -1,0 +1,11 @@
+{
+  "id": "readme-spam",
+  "repo": "openmaps/geo-utils",
+  "title": "Update README.md",
+  "hint": "A typical low-effort Hacktoberfest PR",
+  "description": "Improved the README for better readability.",
+  "expect": {
+    "verdict": "trivial",
+    "planted": []
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "model": "qwen3:8b",
+  "ranAt": "2026-10-25T18:13:06.624Z",
+  "passed": 2,
+  "judged": 2,
+  "rows": [
+    {
+      "id": "axios-11062",
+      "source": "axios/axios#11062",
+      "verdict": "matches",
+      "serious": 0,
+      "judged": true,
+      "pass": true,
+      "seconds": 127
+    },
+    {
+      "id": "express-7483",
+      "source": "expressjs/express#7483",
+      "verdict": "contradicts",
+      "serious": 1,
+      "judged": false,
+      "pass": true,
+      "seconds": 27
+    },
+    {
+      "id": "got-2454",
+      "source": "sindresorhus/got#2454",
+      "verdict": "matches",
+      "serious": 0,
+      "judged": true,
+      "pass": true,
+      "seconds": 73
+    }
+  ]
+}
